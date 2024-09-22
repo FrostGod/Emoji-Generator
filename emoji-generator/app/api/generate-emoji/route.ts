@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import Replicate from 'replicate';
 import { createClient } from '@supabase/supabase-js';
 
