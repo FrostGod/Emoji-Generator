@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useEmoji } from "@/context/EmojiContext";
+import { downloadEmoji } from "@/utils/downloadEmoji";
+import { Download } from 'lucide-react';
 
 interface Emoji {
   id: number;
@@ -46,6 +49,15 @@ export default function EmojiGrid() {
         <Card key={emoji.id} className="p-4 flex flex-col items-center">
           <img src={emoji.image_url} alt={emoji.prompt} className="w-24 h-24 object-contain" />
           <p className="mt-2 text-sm text-center">{emoji.prompt}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2"
+            onClick={() => downloadEmoji(emoji.image_url, emoji.prompt)}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
         </Card>
       ))}
     </div>
