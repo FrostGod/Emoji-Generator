@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useEmoji } from "@/context/EmojiContext";
+import { Card } from "@/components/ui/card";
 
 export default function EmojiGenerator() {
   const [prompt, setPrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedEmoji, setGeneratedEmoji] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { addEmoji } = useEmoji();
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
       const response = await fetch('/api/generate-emoji', {
         method: 'POST',
@@ -19,38 +24,47 @@ export default function EmojiGenerator() {
         },
         body: JSON.stringify({ prompt }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate image');
-      }
-      
+
       const data = await response.json();
-      setGeneratedImage(data.output);
+
+      if (data.success) {
+        setGeneratedEmoji(data.imageUrl);
+        addEmoji({
+          id: Date.now(), // Temporary ID, should be replaced with the actual ID from the backend
+          image_url: data.imageUrl,
+          prompt,
+          likes_count: 0,
+          creator_user_id: 'current_user_id', // Should be replaced with the actual user ID
+        });
+      } else {
+        console.error('Failed to generate emoji:', data.error);
+      }
     } catch (error) {
-      console.error('Error generating image:', error);
-      // Handle error (e.g., show an error message to the user)
+      console.error('Error generating emoji:', error);
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md">
-      <Input
-        type="text"
-        placeholder="Describe your image..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        className="mb-4"
-      />
-      <Button onClick={handleGenerate} disabled={isGenerating} className="w-full mb-4">
-        {isGenerating ? 'Generating...' : 'Generate Image'}
-      </Button>
-      {generatedImage && (
+    <Card className="p-6 w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          type="text"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter emoji description"
+          required
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Generating...' : 'Generate Emoji'}
+        </Button>
+      </form>
+      {generatedEmoji && (
         <div className="mt-4">
-          <img src={generatedImage} alt="Generated Image" className="w-full h-auto mx-auto" />
+          <img src={generatedEmoji} alt="Generated Emoji" className="w-32 h-32 mx-auto" />
         </div>
       )}
-    </div>
+    </Card>
   );
 }
